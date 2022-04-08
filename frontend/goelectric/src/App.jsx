@@ -28,20 +28,22 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="relative">
-        <Toolbar>
-        <IconButton onClick={() => setOpen(o => !o)} sx={{mr: 4}} color="inherit">
-          <Menu/>
-        </IconButton>
-          <Typography>YYEEEE</Typography>
-        </Toolbar>
-      </AppBar>
-      <Box sx={{display: 'flex', alignItems: 'stretch', flexDirection: 'row'}}>
-        <Collapse in={open} orientation="horizontal" collapsedSize={55} sx={{borderRight: 1, borderColor: 'divider'}}>
-          <NavList/>
-        </Collapse>
-        <Box sx={{flexGrow: 1, bgcolor: theme => theme.palette.grey[100]}}>
-          <Outlet />
+      <Box sx={{height: '100vh', display: 'flex', flexDirection: 'column'}}>
+        <AppBar position="relative" sx={{bgcolor: 'primary.dark'}}>
+          <Toolbar>
+          <IconButton onClick={() => setOpen(o => !o)} sx={{mr: 4}} color="inherit">
+            <Menu/>
+          </IconButton>
+            <Typography>YYEEEE</Typography>
+          </Toolbar>
+        </AppBar>
+        <Box sx={{display: 'flex', flexGrow: 1}}>
+          <Collapse in={open} orientation="horizontal" collapsedSize={55} sx={{borderRight: 1, borderColor: 'divider' , bgcolor: theme => theme.palette.grey[100]}}>
+            <NavList/>
+          </Collapse>
+          <Box sx={{flexGrow: 1}}>
+            <Outlet />
+          </Box>
         </Box>
       </Box>
     </ThemeProvider>
