@@ -8,7 +8,7 @@ function LogoContainer() {
         display: "flex",
         bgcolor: "primary.main",
         justifyContent: "center",
-        padding: "10px",
+        padding: 3,
       }}
     >
       <img src={logo} alt="gitara" />
