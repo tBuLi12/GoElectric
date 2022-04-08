@@ -1,19 +1,20 @@
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { Outlet } from "react-router-dom";
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3f51b5',
-      light: '#757de8',
-      dark: '#002984',
-      contrastText: '#ffffff'
+      main: "#66dabf",
+      light: "#9bfff2",
+      dark: "#2ba88f",
+      contrastText: "#ffffff",
     },
     secondary: {
-      main: '#26c6da',
-      light: '#6ff9ff',
-      dark: '#0095a8',
-      contrastText: '#000000'
-    }
+      main: "#f7c62f",
+      light: "#fff965",
+      dark: "#c09600",
+      contrastText: "#ffffff",
+    },
   },
   spacing: 5,
 });
@@ -21,12 +22,10 @@ const theme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline/>
-      <div>
-        dome bullshit
-      </div>
+      <CssBaseline />
+      <Outlet />
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
