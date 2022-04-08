@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/logo.png";
 
 function LogoContainer() {
   return (
