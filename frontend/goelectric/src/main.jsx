@@ -6,14 +6,15 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import LogoContainer from "./components/LogoContainer";
+
+import Homepage from "./pages/Homepage";
 
 ReactDOMClient.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
-          <Route index element={<LogoContainer />} />
+          <Route index element={<Homepage />} />
         </Route>
       </Routes>
     </BrowserRouter>
