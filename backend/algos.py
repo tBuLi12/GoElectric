@@ -11,7 +11,7 @@ class Algos:
                 max_prize: int,
                 voltaics: bool,
                 plugs: list,
-                brand: list(),
+                brand: list,
                 cars_on_market: list,
                 destinations: list,
                 max_dist,
