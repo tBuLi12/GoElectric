@@ -20,7 +20,7 @@ Future<void> initializeService() async {
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
-      autoStart: false,
+      autoStart: true,
       isForegroundMode: true,
     ),
     iosConfiguration: IosConfiguration(
@@ -33,11 +33,19 @@ Future<void> initializeService() async {
 
 void onIosBackground() {}
 
+class Location {
+  final double latitude, longitude;
+  Location(this.latitude, this.longitude);
+  String toJson() {
+    return '{"latitude":$latitude, "longitude":$longitude}';
+  }
+}
+
 class PosCounter {
   int count = 1;
-  Position pos;
+  Location pos;
   PosCounter(this.pos);
-  bool push(Position newPos) {
+  bool push(Location newPos) {
     if (Geolocator.distanceBetween(
             pos.latitude, pos.longitude, newPos.latitude, newPos.longitude) <
         3) {
@@ -49,8 +57,8 @@ class PosCounter {
   }
 }
 
-const locCount = 100;
-List<Position> processData(List<Position> data) {
+const locCount = 5;
+List<Location> processData(List<Location> data) {
   List<PosCounter> buckets = [];
   for (var pos in data) {
     bool inserted = false;
@@ -68,13 +76,16 @@ List<Position> processData(List<Position> data) {
       .toList();
 }
 
-Future<void> goToWebpage(List<Position> data) async {
+Future<void> goToWebpage(List<Location> data) async {
   var frequentLocs = processData(data);
   var success = await launch(Uri(
-      scheme: 'https',
-      host: 'google.com',
-      path: '/search',
-      queryParameters: {'q': 'bleee'}).toString());
+      scheme: 'http',
+      host: '192.168.137.203',
+      port: 3000,
+      path: '/',
+      queryParameters: {
+        'locs': frequentLocs.map<String>((e) => e.toJson()).toList()
+      }).toString());
   if (!success) {
     print('well fuck');
   }
@@ -108,11 +119,18 @@ void onStart() {
     if (!(await service.isRunning())) timer.cancel();
     logger.log();
     var progress = calcProgress(logger.posLog.length);
-    if (progress >= 0) {
-      service.sendData({'done': logger.posLog});
+    if (progress >= 1) {
+      print(logger.posLog
+          .map((e) => {'longitude': e.longitude, 'latitude': e.latitude})
+          .toList());
+      service.sendData({
+        'done': logger.posLog
+            .map((e) => {'longitude': e.longitude, 'latitude': e.latitude})
+            .toList()
+      });
       service.stopService();
     } else {
-      service.sendData({'progress': calcProgress(logger.posLog.length)});
+      service.sendData({'progress': progress});
     }
   });
 }
@@ -129,7 +147,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool loading = true;
   bool? running;
   double? progress;
-  List<Position>? posList;
+  List<Location>? posList;
   @override
   Widget build(BuildContext context) {
     final service = FlutterBackgroundService();
@@ -137,11 +155,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ? [
             const Text('Done collecting data!'),
             ElevatedButton.icon(
-                onPressed: () => launch(Uri(
-                    scheme: 'https',
-                    host: 'google.com',
-                    path: '/search',
-                    queryParameters: {'q': 'bleee'}).toString()),
+                onPressed: () => goToWebpage(posList!),
                 icon: const Icon(Icons.web),
                 label: const Text('go to webside'))
           ]
@@ -210,13 +224,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     FlutterBackgroundService()
       ..isRunning().then((r) => setState(() => running = r))
       ..onDataReceived.listen((event) {
-        double? prog = event!['progress'];
+        double? prog = event!['progress']?.toDouble();
         if (prog != null) {
           setState(() => progress = prog);
           return;
         }
         var data = event['done'];
-        if (data != null) setState(() => posList = data);
+        if (data != null) {
+          setState(() => posList = data
+              .map<Location>((e) => Location(e['latitude'], e['longitude']))
+              .toList());
+        }
       })
       ..sendData({'action': 'getProgress'});
     super.initState();
