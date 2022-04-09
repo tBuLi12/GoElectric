@@ -20,7 +20,7 @@ Future<void> initializeService() async {
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
-      autoStart: true,
+      autoStart: false,
       isForegroundMode: true,
     ),
     iosConfiguration: IosConfiguration(
@@ -57,7 +57,7 @@ class PosCounter {
   }
 }
 
-const locCount = 5;
+const locCount = 100;
 List<Location> processData(List<Location> data) {
   List<PosCounter> buckets = [];
   for (var pos in data) {
@@ -120,9 +120,6 @@ void onStart() {
     logger.log();
     var progress = calcProgress(logger.posLog.length);
     if (progress >= 1) {
-      print(logger.posLog
-          .map((e) => {'longitude': e.longitude, 'latitude': e.latitude})
-          .toList());
       service.sendData({
         'done': logger.posLog
             .map((e) => {'longitude': e.longitude, 'latitude': e.latitude})
@@ -181,14 +178,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                                 child: const Text('stop')),
                             progress == null
                                 ? const Text('loading progress...')
-                                : LinearProgressIndicator(
-                                    value: progress,
+                                : Container(
+                                    child: LinearProgressIndicator(
+                                      value: progress,
+                                    ),
+                                    width: 250,
                                   )
                           ]
                         : [
                             ElevatedButton(
                                 onPressed: () {
-                                  service.startService();
+                                  service
+                                      .startService()
+                                      .then((b) => listenToBackground());
                                   setState(() => running = true);
                                 },
                                 child: const Text('start tracking!'))
@@ -206,11 +208,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             appBar: AppBar(
               title: const Text('GoElectric App'),
             ),
-            body: Center(
-              child: Column(
-                children: view,
-                mainAxisAlignment: MainAxisAlignment.center,
+            body: Container(
+              child: Center(
+                child: Column(
+                  children: view,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                ),
               ),
+              height: 300,
             )),
         theme: ThemeData(
             colorScheme: const ColorScheme.light()
@@ -222,19 +227,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance!.addObserver(this);
     checkPermissions();
     FlutterBackgroundService()
-      ..isRunning().then((r) => setState(() => running = r))
-      ..onDataReceived.listen((event) {
-        double? prog = event!['progress']?.toDouble();
-        if (prog != null) {
-          setState(() => progress = prog);
-          return;
-        }
-        var data = event['done'];
-        if (data != null) {
-          setState(() => posList = data
-              .map<Location>((e) => Location(e['latitude'], e['longitude']))
-              .toList());
-        }
+      ..isRunning().then((r) {
+        setState(() => running = r);
+        if (r) listenToBackground();
       })
       ..sendData({'action': 'getProgress'});
     super.initState();
@@ -260,5 +255,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         : null;
     loading = false;
     setState(() {});
+  }
+
+  void listenToBackground() {
+    FlutterBackgroundService().onDataReceived.listen((event) {
+      double? prog = event!['progress']?.toDouble();
+      if (prog != null) {
+        setState(() => progress = prog);
+        return;
+      }
+      var data = event['done'];
+      if (data != null) {
+        setState(() => posList = data
+            .map<Location>((e) => Location(e['latitude'], e['longitude']))
+            .toList());
+      }
+    });
   }
 }
