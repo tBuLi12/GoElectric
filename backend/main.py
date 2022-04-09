@@ -8,7 +8,48 @@ db = None
 
 @app.route("/api/locations", methods=["POST"])
 def get_numerical_locations():
-    pass
+    if not request.method == "POST":
+        return
+    app.logger.info(request.data)
+    received = request.json
+    if received["userAddress"]["country"] in ("Polska", "polska"):
+        chargers_country = "polandRealChargers"
+    else:
+        chargers_country = "germanyRealChargers"
+    try:
+        chargers = get_charging_points(chargers_country)
+    except (StopIteration):
+        app.logger.info("Invalid Country - 400")
+        return "Invalid Country", 400
+    brands = db.get_collection('carsElectric').distinct('Brand')
+    cars = get_cars()
+    cars = list(cars)
+    brands = process_brands(brands)
+    # address = get_address(
+    #     received["userAddress"]["name"],
+    #     received["userAddress"]["num"],
+    #     received["userAddress"]["city"],
+    #     received["userAddress"]["country"])
+    # destinations.append(address)
+    if not received["destAddress"] == []:
+        destinations = received["destAddress"]
+        # for address in received["destAddress"]:
+        #     temp = get_address(
+        #         address["name"],
+        #         address["num"],
+        #         address["city"],
+        #         address["country"])
+        #     destinations.append(temp)
+    rating = get_rating(received, chargers, brands, cars, destinations)
+    top_cars = rating.find_best_car()[0:3]
+    score = rating.get_result()
+    app.logger.info(f"Counted score: {score}")
+    return {"score": min(round(score*100, 2), 100.00),
+            "best_cars": {
+                1: top_cars[0],
+                2: top_cars[1],
+                3: top_cars[2]
+            }}, 200
 
 
 @app.route("/api/result")
@@ -53,8 +94,7 @@ def post_user_answers():
         app.logger.info("Invalid Country - 400")
         return "Invalid Country", 400
     brands = db.get_collection('carsElectric').distinct('Brand')
-    cars = get_cars()
-    cars = list(cars)
+    cars = list(map(convId, list(get_cars())))
     brands = process_brands(brands)
     address = get_address(
         received["userAddress"]["name"],
@@ -100,7 +140,7 @@ def get_charging_points(chargers_country):
 
 def get_cars():
     cars = db.get_collection('carsElectric').find({}, {
-                    '_id': 0,
+                    '_id': 1,
                     'Brand': 1,
                     'Model': 1,
                     'BodyStyle': 1,
@@ -134,9 +174,14 @@ def get_rating(received, chargers, brands, cars, destinations):
     return rating
 
 
+def convId(obj):
+    obj['_id'] = str(obj['_id'])
+    return obj
+
+
 @app.route("/api/get-cars")
 def get_cars_for_comparison():
-    cars = list(get_cars())
+    cars = list(map(convId, list(get_cars())))
     return jsonify(cars)
 
 

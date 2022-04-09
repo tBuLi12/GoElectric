@@ -3,11 +3,11 @@ from scipy.stats import logistic
 import numpy as np
 
 wages = {
-    'brand': 2,
-    'range': 4,
-    'prize': 6,
-    'chargers': 6,
-    'voltaics': 1
+    'brand': 1,
+    'range': 2,
+    'prize': 10,
+    'chargers': 3,
+    'voltaics': 0.5
 }
 
 
@@ -89,7 +89,8 @@ class Algos:
             if int(car['PriceEuro']) < self.max_prize:
                 prize_rank += 1
             else:
-                prize_rank += (-1/(self.max_prize*1.25))*int(car['PriceEuro']) + 2
+                widen_prize = self.max_prize * 1.25
+                prize_rank += (-1/(widen_prize))*int(car['PriceEuro'])+2
         if len(self.accesable_cars) == 0:
             return 0
         return prize_rank/len(self.accesable_cars)
@@ -110,6 +111,8 @@ class Algos:
     def find_best_car(self):
         chosen = self.prefered_cars
         rejected = self.rejected_cars
-        chosen = sorted(chosen, key=lambda d: int(d['PriceEuro']), reverse=True)
-        rejected = sorted(rejected, key=lambda d: int(d['PriceEuro']), reverse=True)
+        chosen = sorted(chosen, key=lambda d: int(d['PriceEuro']),
+                        reverse=True)
+        rejected = sorted(rejected,
+                          key=lambda d: int(d['PriceEuro']), reverse=True)
         return np.append(chosen, rejected)
