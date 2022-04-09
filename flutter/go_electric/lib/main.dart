@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_background_service_ios/flutter_background_service_ios.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_electric/loc_logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +33,53 @@ Future<void> initializeService() async {
 
 void onIosBackground() {}
 
+class PosCounter {
+  int count = 1;
+  Position pos;
+  PosCounter(this.pos);
+  bool push(Position newPos) {
+    if (Geolocator.distanceBetween(
+            pos.latitude, pos.longitude, newPos.latitude, newPos.longitude) <
+        3) {
+      ++count;
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+const locCount = 100;
+List<Position> processData(List<Position> data) {
+  List<PosCounter> buckets = [];
+  for (var pos in data) {
+    bool inserted = false;
+    for (var bucket in buckets) {
+      if (inserted = bucket.push(pos)) break;
+    }
+    if (!inserted) {
+      buckets.add(PosCounter(pos));
+    }
+  }
+  buckets.sort((a, b) => b.count - a.count);
+  return buckets
+      .where((posCnt) => posCnt.count > 0.05 * locCount)
+      .map((e) => e.pos)
+      .toList();
+}
+
+Future<void> goToWebpage(List<Position> data) async {
+  var frequentLocs = processData(data);
+  var success = await launch(Uri(
+      scheme: 'https',
+      host: 'google.com',
+      path: '/search',
+      queryParameters: {'q': 'bleee'}).toString());
+  if (!success) {
+    print('well fuck');
+  }
+}
+
 void onStart() {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isIOS) FlutterBackgroundServiceIOS.registerWith();
@@ -42,16 +91,29 @@ void onStart() {
     content: "Updated at ${DateTime.now()}",
   );
 
+  var logger = LocLogger();
+  double calcProgress(int len) {
+    return (len / locCount).toDouble();
+  }
+
   service.onDataReceived.listen((event) {
-    if (event!["action"] == "stopService") {
+    if (event!["action"] == "getProgress") {
+      service.sendData({'progress': calcProgress(logger.posLog.length)});
+    } else if (event["action"] == "stopService") {
       service.stopService();
     }
   });
-  var logger = LocLogger();
   service.setAsForegroundService();
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
+  Timer.periodic(const Duration(seconds: 2), (timer) async {
     if (!(await service.isRunning())) timer.cancel();
     logger.log();
+    var progress = calcProgress(logger.posLog.length);
+    if (progress >= 0) {
+      service.sendData({'done': logger.posLog});
+      service.stopService();
+    } else {
+      service.sendData({'progress': calcProgress(logger.posLog.length)});
+    }
   });
 }
 
@@ -62,83 +124,123 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
-  String text = "Stop Service";
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  LocationPermission? permission;
+  bool loading = true;
+  bool? running;
+  double? progress;
+  List<Position>? posList;
   @override
   Widget build(BuildContext context) {
+    final service = FlutterBackgroundService();
+    final List<Widget> view = posList != null
+        ? [
+            const Text('Done collecting data!'),
+            ElevatedButton.icon(
+                onPressed: () => launch(Uri(
+                    scheme: 'https',
+                    host: 'google.com',
+                    path: '/search',
+                    queryParameters: {'q': 'bleee'}).toString()),
+                icon: const Icon(Icons.web),
+                label: const Text('go to webside'))
+          ]
+        : loading
+            ? const [
+                CircularProgressIndicator(),
+                Text('Loading permissions...')
+              ]
+            : permission == null || running == null
+                ? const [Text('please enable location')]
+                : permission == LocationPermission.always
+                    ? running!
+                        ? [
+                            const Text('tracking, you may close the app'),
+                            ElevatedButton(
+                                onPressed: () {
+                                  service.sendData({'action': 'stopService'});
+                                  setState(() {
+                                    running = false;
+                                    progress = 0;
+                                  });
+                                },
+                                child: const Text('stop')),
+                            progress == null
+                                ? const Text('loading progress...')
+                                : LinearProgressIndicator(
+                                    value: progress,
+                                  )
+                          ]
+                        : [
+                            ElevatedButton(
+                                onPressed: () {
+                                  service.startService();
+                                  setState(() => running = true);
+                                },
+                                child: const Text('start tracking!'))
+                          ]
+                    : [
+                        const Text(
+                            'please grant the app location permission - always'),
+                        ElevatedButton(
+                            onPressed: () =>
+                                GeolocatorPlatform.instance.openAppSettings(),
+                            child: const Text('settings'))
+                      ];
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Service App'),
-        ),
-        body: Column(
-          children: [
-            StreamBuilder<Map<String, dynamic>?>(
-              stream: FlutterBackgroundService().onDataReceived,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+        home: Scaffold(
+            appBar: AppBar(
+              title: const Text('GoElectric App'),
+            ),
+            body: Center(
+              child: Column(
+                children: view,
+                mainAxisAlignment: MainAxisAlignment.center,
+              ),
+            )),
+        theme: ThemeData(
+            colorScheme: const ColorScheme.light()
+                .copyWith(primary: const Color.fromRGBO(102, 218, 191, 1))));
+  }
 
-                final data = snapshot.data!;
-                String? device = data["device"];
-                DateTime? date = DateTime.tryParse(data["current_date"]);
-                return Column(
-                  children: [
-                    Text(device ?? 'Unknown'),
-                    Text(date.toString()),
-                  ],
-                );
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Foreground Mode"),
-              onPressed: () {
-                FlutterBackgroundService()
-                    .sendData({"action": "setAsForeground"});
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Background Mode"),
-              onPressed: () {
-                FlutterBackgroundService()
-                    .sendData({"action": "setAsBackground"});
-              },
-            ),
-            ElevatedButton(
-              child: Text(text),
-              onPressed: () async {
-                final service = FlutterBackgroundService();
-                var isRunning = await service.isRunning();
-                if (isRunning) {
-                  service.sendData(
-                    {"action": "stopService"},
-                  );
-                } else {
-                  service.startService();
-                }
+  @override
+  void initState() {
+    WidgetsBinding.instance!.addObserver(this);
+    checkPermissions();
+    FlutterBackgroundService()
+      ..isRunning().then((r) => setState(() => running = r))
+      ..onDataReceived.listen((event) {
+        double? prog = event!['progress'];
+        if (prog != null) {
+          setState(() => progress = prog);
+          return;
+        }
+        var data = event['done'];
+        if (data != null) setState(() => posList = data);
+      })
+      ..sendData({'action': 'getProgress'});
+    super.initState();
+  }
 
-                if (!isRunning) {
-                  text = 'Stop Service';
-                } else {
-                  text = 'Start Service';
-                }
-                setState(() {});
-              },
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            FlutterBackgroundService().sendData({
-              "hello": "world",
-            });
-          },
-          child: const Icon(Icons.play_arrow),
-        ),
-      ),
-    );
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) checkPermissions();
+    super.didChangeAppLifecycleState(state);
+  }
+
+  void checkPermissions() async {
+    setState(() => loading = true);
+    var geolocator = GeolocatorPlatform.instance;
+    permission = (await geolocator.isLocationServiceEnabled())
+        ? (await geolocator.checkPermission())
+        : null;
+    loading = false;
+    setState(() {});
   }
 }
