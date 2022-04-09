@@ -23,7 +23,7 @@ import UserServices from "../services/UserServices";
 
 import { useState, useEffect } from "react";
 
-function CarForm({ userData, setUserData, handleSubmit }) {
+function CarForm({ userData, setUserData, handleSubmit, custom }) {
   const handleChange = (event) => {
     const { value, name } = event.target;
     const [rootName, subname] = name.split(".");
@@ -183,20 +183,22 @@ function CarForm({ userData, setUserData, handleSubmit }) {
               </FormControl>
             </Grid>
           </Grid>
-          <Typography sx={{ pt: 5, pb: 5 }} variant="h5">
-            Frequent destinations:
-          </Typography>
+          {custom || <>
+            <Typography sx={{ pt: 5, pb: 5 }} variant="h5">
+              Frequent destinations:
+            </Typography>
 
-          <Grid container spacing={10}>
-            {userData.destAddress.map((address, id) => {
-              return (
-                <AddressForm
-                  address={`destAddress,${id}`}
-                  handleChange={handleDestAddresses}
-                />
-              );
-            })}
-          </Grid>
+            <Grid container spacing={10}>
+              {userData.destAddress.map((address, id) => {
+                return (
+                  <AddressForm
+                    address={`destAddress,${id}`}
+                    handleChange={handleDestAddresses}
+                  />
+                );
+              })}
+            </Grid>
+          </>}
           <Button
             color="primary"
             variant="outlined"
