@@ -2,6 +2,8 @@ import React from "react";
 import * as ReactDOMClient from "react-dom/client";
 import App from "./App";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Homepage from "./pages/Homepage";
+import AboutPage from "./pages/AboutPage";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -19,6 +21,7 @@ ReactDOMClient.createRoot(document.getElementById("root")).render(
           <Route index element={<Homepage />} />
           <Route path="tinder" element={<TinderPage />} />
           <Route path="compare" element={<Compare />} />
+          <Route path="about" element={<AboutPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

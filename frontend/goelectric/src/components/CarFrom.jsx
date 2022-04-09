@@ -88,6 +88,7 @@ function CarForm({ userData, setUserData, handleSubmit, custom }) {
               <TextField
                 required
                 fullWidth
+                type="number"
                 size="medium"
                 name="days"
                 label="Days spend in car per week"
@@ -100,6 +101,7 @@ function CarForm({ userData, setUserData, handleSubmit, custom }) {
                 required
                 fullWidth
                 size="medium"
+                type="number"
                 name="km"
                 label="Average Kilometers driven per day"
                 variant="outlined"
@@ -107,35 +109,6 @@ function CarForm({ userData, setUserData, handleSubmit, custom }) {
               />
             </Grid>
             <Grid item lg={4}>
-              <TextField
-                required
-                fullWidth
-                size="medium"
-                name="price"
-                label="Max price"
-                variant="outlined"
-                onChange={handleChange}
-              />
-            </Grid>
-            <AddressForm address="userAddress" handleChange={handleChange} />
-            <Grid item lg={3}>
-              <FormLabel id="radio">Do you have photovoltaics?</FormLabel>
-              <RadioGroup defaultValue="yes" name="radio">
-                <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item lg={3}>
-              <TextField
-                fullWidth
-                size="medium"
-                name="maxDistance"
-                label="Maximal distance for charger"
-                variant="outlined"
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item lg={2}>
               <FormControl fullWidth>
                 <InputLabel id="bodyLabel">Preferred car body type</InputLabel>
                 <Select
@@ -150,6 +123,36 @@ function CarForm({ userData, setUserData, handleSubmit, custom }) {
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <AddressForm address="userAddress" handleChange={handleChange} />
+            <Grid item lg={3}>
+              <FormLabel id="radio">Do you have photovoltaics?</FormLabel>
+              <RadioGroup defaultValue="" name="radio">
+                <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                <FormControlLabel value="no" control={<Radio />} label="No" />
+              </RadioGroup>
+            </Grid>
+            <Grid item lg={3}>
+              <TextField
+                fullWidth
+                size="medium"
+                name="maxDistance"
+                label="Maximal distance for charger (km)"
+                variant="outlined"
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item lg={2}>
+              <TextField
+                required
+                fullWidth
+                size="medium"
+                type="number"
+                name="price"
+                label="Max price (€)"
+                variant="outlined"
+                onChange={handleChange}
+              />
             </Grid>
             <Grid item lg={4}>
               <FormControl fullWidth>

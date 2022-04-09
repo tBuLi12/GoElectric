@@ -1,7 +1,7 @@
 import pymongo
 from bson.objectid import ObjectId
-
-client = pymongo.MongoClient('mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false')
+host = "192.168.137.203"
+client = pymongo.MongoClient(host, 8080)
 
 db = client.get_database('sandbox')
 
