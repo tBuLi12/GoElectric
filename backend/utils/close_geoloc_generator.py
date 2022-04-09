@@ -8,6 +8,8 @@ latitude = 0.794501
 longitude = -0.752568
 file_n = 'data/random_lat_lon.csv'
 # shitty code from stackoverflow
+
+
 def generate_random_data(lon, lat, num_rows):
     # with open(file_name, 'w') as output:
     plugs = list()
