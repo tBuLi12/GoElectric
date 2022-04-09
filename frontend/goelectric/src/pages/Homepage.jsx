@@ -1,11 +1,13 @@
 import CarForm from "../components/CarFrom";
 import LogoContainer from "../components/LogoContainer";
 import { useEffect, useState } from "react";
+import { useSearchParams } from 'react-router-dom';
 import ResultContainer from "../components/ResultContainer";
 import UserServices from "../services/UserServices";
 import Address from "../Address";
 
 function Homepage() {
+  const [params] = useSearchParams();
   const [carResult, setCarResult] = useState({
     score: null,
     best_cards: [],
@@ -24,11 +26,10 @@ function Homepage() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    UserServices.postCarForm(userData)
+    UserServices.postCarForm(userData, params.has('locs') && params.getAll('locs'))
       .then((res) => res.json())
       .then((res) => setCarResult(res));
     console.log(userData);
-    event.preventDefault();
   };
 
   return (
@@ -43,6 +44,7 @@ function Homepage() {
         userData={userData}
         setUserData={setUserData}
         handleSubmit={handleSubmit}
+        custom={params.has('locs')}
       />
       {carResult.score && <ResultContainer {...carResult} />}
     </div>
