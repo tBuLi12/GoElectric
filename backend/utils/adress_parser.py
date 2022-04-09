@@ -2,11 +2,14 @@ from geopy.geocoders import Nominatim
 
 
 def parse_address(args):
-    address = " ".join(args)
-    return address
+    result = str()
+    for arg in args:
+        result = result + " " + arg
+    return result.lstrip()
 
 
-def get_addres(*args):
+def get_address(*args):
     geolocator = Nominatim(user_agent="GoElectric")
+    print(parse_address(args))
     location = geolocator.geocode(parse_address(args))
-    return (location.longitude, location.latitude)
+    return [location.longitude, location.latitude]

@@ -1,9 +1,14 @@
 from flask import Flask, request, jsonify
 from algos import Algos
-from utils.adress_parser import parse_address
+from utils.adress_parser import get_address
 import pymongo
 app = Flask(__name__)
 db = None
+
+
+@app.route("/api/locations", methods=["POST"])
+def get_numerical_locations():
+    pass
 
 
 @app.route("/api/result")
@@ -29,7 +34,7 @@ def process_brands(car_brands: list):
     for brand in car_brands:
         splitted = brand.split(" ")
         unique_brands.append(splitted[0].lower())
-    return sorted(list(set(unique_brands)))
+    return list(set(unique_brands))
 
 
 @app.route("/api/form/carForm", methods=["POST"])
@@ -38,7 +43,6 @@ def post_user_answers():
         return
     app.logger.info(request.data)
     received = request.json
-    print(request.args)
     if received["userAddress"]["country"] in ("Polska", "polska"):
         chargers_country = "polandRealChargers"
     else:
@@ -48,23 +52,30 @@ def post_user_answers():
     except (StopIteration):
         app.logger.info("Invalid Country - 400")
         return "Invalid Country", 400
-    brands = db.get_collection('cars').distinct('CarName')
+    brands = db.get_collection('carsElectric').distinct('Brand')
     cars = get_cars()
     cars = list(cars)
     brands = process_brands(brands)
-    address = parse_address((
+    address = get_address(
         received["userAddress"]["name"],
         received["userAddress"]["num"],
         received["userAddress"]["city"],
-        received["userAddress"]["country"]))
+        received["userAddress"]["country"])
     destinations = list()
     destinations.append(address)
-    if received["destAddress"]:
-        destinations.extend(received["destAddress"])
+    if not received["destAddress"] == []:
+        for address in received["destAddress"]:
+            temp = get_address(
+                address["name"],
+                address["num"],
+                address["city"],
+                address["country"])
+            destinations.append(temp)
     rating = get_rating(received, chargers, brands, cars, destinations)
     top_cars = rating.find_best_car()[0:3]
-    score = rating.calc_result()
-    return {"score": score,
+    score = rating.get_result()
+    app.logger.info(f"Counted score: {score}")
+    return {"score": round(score*100, 2),
             "best_cars": {
                 1: top_cars[0],
                 2: top_cars[1],
@@ -73,13 +84,12 @@ def post_user_answers():
 
 
 def get_charging_points(chargers_country):
-    print(chargers_country)
     chargers = db.get_collection(chargers_country).aggregate([
             {'$group': {
                 '_id': None,
                 'loc': {'$push': {'$function': {
                     'body': 'function(la, lg) {return [la, lg]}',
-                    'args': ['$latitude', '$longditude'],
+                    'args': ['$latitude', '$longitude'],
                     'lang': 'js',
                         }}}
             }}
@@ -103,16 +113,21 @@ def get_cars():
 
 
 def get_rating(received, chargers, brands, cars, destinations):
+    if received["maxDistance"] == "":
+        received["maxDistance"] = 2
+    if received["photovoltaics"] == "":
+        received["photovoltaics"] = False
+
     params = [
         received["price"],
         chargers,
-        destinations,
+        destinations,   # always is address given
         brands,
         cars,
         received["km"],
-        received["days"],
+        int(received["days"]),
         received["body"],
-        received["maxDistance"],
+        int(received["maxDistance"]),
         received["photovoltaics"]
     ]
     rating = Algos(*params)

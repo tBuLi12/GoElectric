@@ -1,12 +1,13 @@
 from geopy.distance import geodesic
 from scipy.stats import logistic
+import numpy as np
 
 wages = {
     'brand': 1,
     'range': 1,
-    'prize': 1,
+    'prize': 10,
     'chargers': 1,
-    'voltaics': 1
+    'voltaics': 0.5
 }
 
 
@@ -21,25 +22,25 @@ class Algos:
             daily_dist: int,
             days_riding: int,
             pref_body: str,
-            walk_range: int,
-            voltaics) -> None:
+            walk_range=2,
+            voltaics=1) -> None:
         self.wages = wages
-        self.max_prize = max_prize
+        self.max_prize = int(max_prize)
         self.charg_loc = charg_loc
         self.freq_dest = freq_dest
         self.brands = brands
         self.cars = cars
-        self.daily_dist = daily_dist
-        self.days_riding = days_riding
+        self.daily_dist = int(daily_dist)
+        self.days_riding = int(days_riding)
         self.pref_body = pref_body
-        self.walk_range = walk_range
-        self.voltaics = voltaics
+        self.walk_range = int(walk_range)
+        self.voltaics = walk_range
         self.accesable_cars = []
         self.rejected_cars = []
         self.prefered_cars = []
 
         for car in self.cars:
-            if int(car['PriceEuro']) < 1.25*self.max_prize:
+            if int(car['PriceEuro']) < 1.25*int(self.max_prize):
                 self.accesable_cars.append(car)
             else:
                 self.rejected_cars.append(car)
@@ -60,6 +61,8 @@ class Algos:
         return (brand+charges+prizes+chargers+voltaics)/wages_sum
 
     def calc_brand(self):
+        if len(self.accesable_cars) == 0:
+            return 0.0
         return len(self.prefered_cars)/len(self.accesable_cars)
 
     def calc_chargers(self):
@@ -87,16 +90,20 @@ class Algos:
                 prize_rank += 1
             else:
                 prize_rank += (-1/(self.max_prize*1.25))*int(car['PriceEuro']) + 2
+        if len(self.accesable_cars) == 0:
+            return 0
         return prize_rank/len(self.accesable_cars)
 
     def calc_charges(self):
         avg_range = 0
-        if self.days_riding <= 0 or self.daily_dist <= 0:
+        if int(self.days_riding) <= 0 or int(self.daily_dist) <= 0:
             return 0.0
         for car in self.prefered_cars:
             avg_range += int(car['Range_Km'])
         if len(self.prefered_cars) == 0:
             return 0.0
+        if len(self.prefered_cars) == 0:
+            return 0
         avg_range = avg_range/len(self.prefered_cars)
         return logistic.cdf(1/((self.days_riding*self.daily_dist)/avg_range))
 
@@ -105,4 +112,4 @@ class Algos:
         rejected = self.rejected_cars
         chosen = sorted(chosen, key=lambda d: int(d['PriceEuro']), reverse=True)
         rejected = sorted(rejected, key=lambda d: int(d['PriceEuro']), reverse=True)
-        return chosen.append(rejected)
+        return np.append(chosen, rejected)
