@@ -12,7 +12,10 @@ with open('backend/data/ElectricCarData_Clean.csv') as f:
         d["TopSpeed_KmH"] = float(d["TopSpeed_KmH"])
         d['Range_Km'] = int(d['Range_Km'])
         d['Efficiency_WhKm'] = float(d['Efficiency_WhKm'])
-        del(d['FastCharge_KmH'])
+        if d['FastCharge_KmH'] == '-':
+            del d['FastCharge_KmH']
+        else:
+            d['FastCharge_KmH'] = float(d['FastCharge_KmH'])
         d['RapidCharge'] = True if d['RapidCharge'] == 'Yes' else False
         d['Seats'] = int(d['Seats'])
         d['PriceEuro'] = int(d['PriceEuro'])
