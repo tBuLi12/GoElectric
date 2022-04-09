@@ -8,6 +8,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import Homepage from "./pages/Homepage";
+import TinderPage from "./pages/TinderPage";
 
 ReactDOMClient.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -15,6 +16,7 @@ ReactDOMClient.createRoot(document.getElementById("root")).render(
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Homepage />} />
+          <Route path="tinder" element={<TinderPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

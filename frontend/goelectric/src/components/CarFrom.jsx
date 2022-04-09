@@ -19,23 +19,11 @@ import {
 } from "@mui/material";
 import Address from "../Address";
 import AddressForm from "./AddressForm";
-import { useState } from "react";
+import UserServices from "../services/UserServices";
 
-const names = [
-  "Oliver Hansen",
-  "Van Henry",
-  "April Tucker",
-  "Ralph Hubbard",
-  "Omar Alexander",
-  "Carlos Abbott",
-  "Miriam Wagner",
-  "Bradley Wilkerson",
-  "Virginia Andrews",
-  "Kelly Snyder",
-];
+import { useState, useEffect } from "react";
 
 function CarForm({ userData, setUserData, handleSubmit }) {
-  const {} = userData;
   const handleChange = (event) => {
     const { value, name } = event.target;
     const [rootName, subname] = name.split(".");
@@ -47,6 +35,22 @@ function CarForm({ userData, setUserData, handleSubmit }) {
         : value,
     }));
   };
+
+  const [fixedBrands, setFixedBrands] = useState([]);
+  const [fixedBody, setFixedBody] = useState([]);
+
+  useEffect(() => {
+    UserServices.getBrands()
+      .then((res) => res.json())
+      .then((res) => {
+        setFixedBrands(res);
+      });
+    UserServices.getBody()
+      .then((res) => res.json())
+      .then((res) => {
+        setFixedBody(res);
+      });
+  }, []);
 
   const handleDestAddresses = (event) => {
     const { value, name } = event.target;
@@ -136,29 +140,28 @@ function CarForm({ userData, setUserData, handleSubmit }) {
                 <InputLabel id="bodyLabel">Preferred car body type</InputLabel>
                 <Select
                   labelId="bodyLabel"
-                  id="body"
-                  value="Sedan"
+                  name="body"
+                  value={userData.body}
                   label="Preferred Car body type"
                   onChange={handleChange}
                 >
-                  <MenuItem value={"Sedan"}>Sedan</MenuItem>
+                  {fixedBody.map((tempBody) => (
+                    <MenuItem value={tempBody}>{tempBody}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
             <Grid item lg={4}>
               <FormControl fullWidth>
-                <InputLabel id="brands">Preferred car Brand</InputLabel>
+                <InputLabel id="brands">Preferred car brand</InputLabel>
                 <Select
                   labelId="brandsLabel"
-                  id="brand"
+                  name="brands"
                   value={userData.brands.length ? userData.brands : ""}
                   onChange={handleMultiplySelect}
-                  label="Preferred car Brand"
+                  label="Preferred car Brands"
                   input={
-                    <OutlinedInput
-                      id="select-multiple-chip"
-                      label="Preferred car Brand"
-                    />
+                    <OutlinedInput id="brandId" label="Preferred car Brands" />
                   }
                   renderValue={(selected) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
@@ -168,9 +171,9 @@ function CarForm({ userData, setUserData, handleSubmit }) {
                     </Box>
                   )}
                 >
-                  {names.map((name) => (
-                    <MenuItem key={name} value={name}>
-                      {name}
+                  {fixedBrands.map((brand) => (
+                    <MenuItem key={brand} value={brand}>
+                      {brand}
                     </MenuItem>
                   ))}
                 </Select>
@@ -222,7 +225,6 @@ function CarForm({ userData, setUserData, handleSubmit }) {
         </Container>
       </form>
     </>
-    /* max cena, fotowoltaika, preferowane marki, freq destinations, maks dystans od ładowarki, średni dystans, ile dni w tg, preferowany rodzaj nadwozia */
   );
 }
 
