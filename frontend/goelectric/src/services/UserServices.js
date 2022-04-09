@@ -3,6 +3,9 @@ class UserService {
     return fetch("/form/carForm", {
       method: "POST",
       body: JSON.stringify(userData),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 }

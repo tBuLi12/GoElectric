@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/form": {
-        target: "http://192.168.137.1:5000",
+        target: "http://192.168.137.1:5000/",
         changeOrigin: true,
       },
     },

@@ -33,7 +33,7 @@ const theme = createTheme({
 });
 
 function App() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <ThemeProvider theme={theme}>
