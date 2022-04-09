@@ -88,6 +88,7 @@ function CarForm({ userData, setUserData, handleSubmit }) {
               <TextField
                 required
                 fullWidth
+                type="number"
                 size="medium"
                 name="days"
                 label="Days spend in car per week"
@@ -100,6 +101,7 @@ function CarForm({ userData, setUserData, handleSubmit }) {
                 required
                 fullWidth
                 size="medium"
+                type="number"
                 name="km"
                 label="Average Kilometers driven per day"
                 variant="outlined"
@@ -107,20 +109,25 @@ function CarForm({ userData, setUserData, handleSubmit }) {
               />
             </Grid>
             <Grid item lg={4}>
-              <TextField
-                required
-                fullWidth
-                size="medium"
-                name="price"
-                label="Max price"
-                variant="outlined"
-                onChange={handleChange}
-              />
+              <FormControl fullWidth>
+                <InputLabel id="bodyLabel">Preferred car body type</InputLabel>
+                <Select
+                  labelId="bodyLabel"
+                  name="body"
+                  value={userData.body}
+                  label="Preferred Car body type"
+                  onChange={handleChange}
+                >
+                  {fixedBody.map((tempBody) => (
+                    <MenuItem value={tempBody}>{tempBody}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <AddressForm address="userAddress" handleChange={handleChange} />
             <Grid item lg={3}>
               <FormLabel id="radio">Do you have photovoltaics?</FormLabel>
-              <RadioGroup defaultValue="yes" name="radio">
+              <RadioGroup defaultValue="" name="radio">
                 <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                 <FormControlLabel value="no" control={<Radio />} label="No" />
               </RadioGroup>
@@ -136,20 +143,16 @@ function CarForm({ userData, setUserData, handleSubmit }) {
               />
             </Grid>
             <Grid item lg={2}>
-              <FormControl fullWidth>
-                <InputLabel id="bodyLabel">Preferred car body type</InputLabel>
-                <Select
-                  labelId="bodyLabel"
-                  name="body"
-                  value={userData.body}
-                  label="Preferred Car body type"
-                  onChange={handleChange}
-                >
-                  {fixedBody.map((tempBody) => (
-                    <MenuItem value={tempBody}>{tempBody}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                required
+                fullWidth
+                size="medium"
+                type="number"
+                name="price"
+                label="Max price"
+                variant="outlined"
+                onChange={handleChange}
+              />
             </Grid>
             <Grid item lg={4}>
               <FormControl fullWidth>

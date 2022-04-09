@@ -28,7 +28,6 @@ function Homepage() {
       .then((res) => res.json())
       .then((res) => setCarResult(res));
     console.log(userData);
-    event.preventDefault();
   };
 
   return (

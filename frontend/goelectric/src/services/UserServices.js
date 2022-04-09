@@ -18,7 +18,7 @@ class UserServices {
   }
 
   async getTinder() {
-    return fetch("/api/get/cars");
+    return fetch("/api/get-cars");
   }
 }
 
