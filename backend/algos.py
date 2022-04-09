@@ -1,6 +1,7 @@
 # from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 from scipy.stats import logistic
+import numpy as np
 
 wages = [1, 1, 1, 1, 1]
 
@@ -16,7 +17,8 @@ class Algos:
                 destinations: list,
                 max_dist,
                 avg_dist,
-                days_per_week) -> None:
+                days_per_week,
+                prefered_body) -> None:
         self.wages = wages
         self.brand_wage = self.wages[0]
         self.charges_wage = self.wages[1]
@@ -32,6 +34,7 @@ class Algos:
         self.max_dist = max_dist
         self.avg_dist = avg_dist
         self.days_per_week = days_per_week
+        self.prefered_body = prefered_body
 
     def calc_result(self):
         brand = self.brand_wage*self.calc_brand()
@@ -46,7 +49,7 @@ class Algos:
         considered = 0
         liked = 0
         for car in self.cars:
-            if car[2] < self.max_prize:
+            if car[3] < self.max_prize:
                 considered += 1
                 if car[0].split()[0] in self.brand:
                     liked += 1
@@ -74,7 +77,7 @@ class Algos:
         if self.days_per_week <= 0 or self.avg_dist <= 0:
             return 0.0
         for car in self.cars:
-            if car[2] < self.max_prize:
+            if car[3] < self.max_prize:
                 avg_range += car[1]
                 considered += 1
         avg_range = avg_range/considered
@@ -94,3 +97,14 @@ class Algos:
         if considered:
             return in_radius/considered
         return 0
+
+    def find_best_car(self):
+        rejected = list()
+        chosen = list()
+        for car in self.cars:
+            if car[3] < self.max_prize and car[0].split()[0] in self.brand and car[1] == self.prefered_body:
+                chosen.append(car)
+            else:
+                rejected.append(car)
+        chosen = sorted(chosen, key=lambda x: x[3], reverse=True)
+        return np.append(chosen, rejected, axis=0)
