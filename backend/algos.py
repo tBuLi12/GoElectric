@@ -1,5 +1,6 @@
 from geopy.distance import geodesic
 from scipy.stats import logistic
+import numpy as np
 
 wages = {
     'brand': 1,
@@ -105,4 +106,4 @@ class Algos:
         rejected = self.rejected_cars
         chosen = sorted(chosen, key=lambda d: int(d['PriceEuro']), reverse=True)
         rejected = sorted(rejected, key=lambda d: int(d['PriceEuro']), reverse=True)
-        return chosen.append(rejected)
+        return np.append(chosen, rejected)

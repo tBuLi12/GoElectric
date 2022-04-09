@@ -36,3 +36,5 @@ alg = Algos(2000000, plugs, place, brands, data, 10, 3, 'Hatchback', 2, True)
 # print(alg.calc_chargers())
 # print(alg.calc_prize())
 # print(alg.calc_charges())
+
+# print(alg.find_best_car()[:3])
