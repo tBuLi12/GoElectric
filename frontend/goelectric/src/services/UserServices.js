@@ -1,7 +1,7 @@
 class UserServices {
   async postCarForm(userData, customLocations) {
     return customLocations ?  
-      fetch("/api/form/locations", {
+      fetch("/api/locations", {
         method: "POST",
         body: JSON.stringify({...userData, destAddress: customLocations.map(JSON.parse).map(e => [e.longitude, e.latitude])}),
         headers: {
