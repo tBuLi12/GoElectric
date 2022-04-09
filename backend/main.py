@@ -75,7 +75,7 @@ def post_user_answers():
     top_cars = rating.find_best_car()[0:3]
     score = rating.get_result()
     app.logger.info(f"Counted score: {score}")
-    return {"score": round(score*100, 2),
+    return {"score": min(round(score*100, 2), 100.00),
             "best_cars": {
                 1: top_cars[0],
                 2: top_cars[1],

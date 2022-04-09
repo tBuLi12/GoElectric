@@ -3,11 +3,11 @@ from scipy.stats import logistic
 import numpy as np
 
 wages = {
-    'brand': 1,
-    'range': 1,
-    'prize': 10,
-    'chargers': 1,
-    'voltaics': 0.5
+    'brand': 2,
+    'range': 4,
+    'prize': 6,
+    'chargers': 6,
+    'voltaics': 1
 }
 
 
