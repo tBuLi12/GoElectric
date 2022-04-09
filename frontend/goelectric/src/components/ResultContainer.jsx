@@ -4,8 +4,7 @@ import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt
 import { Container, Typography } from "@mui/material";
 
 function ResultContainer({ score, best_cars: bestCars }) {
-  const Icon;
-
+  let Icon;
   let iconProps;
   let text;
   let fontColor;

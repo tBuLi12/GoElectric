@@ -137,7 +137,7 @@ function CarForm({ userData, setUserData, handleSubmit }) {
                 fullWidth
                 size="medium"
                 name="maxDistance"
-                label="Maximal distance for charger"
+                label="Maximal distance for charger (km)"
                 variant="outlined"
                 onChange={handleChange}
               />
@@ -149,7 +149,7 @@ function CarForm({ userData, setUserData, handleSubmit }) {
                 size="medium"
                 type="number"
                 name="price"
-                label="Max price"
+                label="Max price (€)"
                 variant="outlined"
                 onChange={handleChange}
               />
