@@ -33,24 +33,12 @@ const theme = createTheme({
 });
 
 function App() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-        <AppBar position="relative" sx={{ bgcolor: "primary.dark" }}>
-          <Toolbar>
-            <IconButton
-              onClick={() => setOpen((o) => !o)}
-              sx={{ mr: 4 }}
-              color="inherit"
-            >
-              <Menu />
-            </IconButton>
-            <Typography>YYEEEE</Typography>
-          </Toolbar>
-        </AppBar>
         <Box sx={{ display: "flex", flexGrow: 1 }}>
           <Collapse
             in={open}
@@ -59,10 +47,10 @@ function App() {
             sx={{
               borderRight: 1,
               borderColor: "divider",
-              bgcolor: (theme) => theme.palette.grey[100],
+              bgcolor: "primary.dark",
             }}
           >
-            <NavList />
+            <NavList setOpen={setOpen} />
           </Collapse>
           <Box sx={{ flexGrow: 1 }}>
             <Outlet />
